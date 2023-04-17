@@ -1,0 +1,80 @@
+#########################  import packages  ##########################################
+import numpy as np
+import csv
+import math
+import matplotlib.pyplot as plt
+import matplotlib.image as img
+from matplotlib import interactive
+from matplotlib.widgets import Cursor
+import os
+import random
+#################### Tri des donnees   ################################################
+
+with open("data_name.csv","r") as file_source:
+	file_plot = csv.reader(file_source)
+#	file_plot.next()
+	with open("result_name","w") as result:
+		wtr= csv.writer(result)
+		for row in file_plot :
+			wtr.writerow( (row[1], row[3])) # min(Y)/max(Y), Time
+
+data = np.genfromtxt("result_name",delimiter=',');
+
+### data storage ####
+y	 	  = data[:,0]
+x	  	  = data[:,1]
+
+
+###  graphs ###
+
+
+## U0 ##
+fig = plt.figure()
+ax = fig.subplots()
+ax.plot(x,y, color = 'b')
+ax.grid()
+#plt.loglog(x, y)
+plt.xlabel('Time[seconds]')
+plt.ylabel('z(t) [m]')
+plt.title('Height vs Time')
+
+# Defining the cursor
+cursor = Cursor(ax, horizOn=True, vertOn=True, useblit=True,
+                color = 'r', linewidth = 1)
+
+	#plt.legend(['Line1', 'Sine'])
+# Creating an annotating box
+annot = ax.annotate("", xy=(0,0), xytext=(-40,40),textcoords="offset points",
+                    bbox=dict(boxstyle='round4', fc='linen',ec='k',lw=1),
+                    arrowprops=dict(arrowstyle='-|>'))
+annot.set_visible(False)
+
+# Function for storing and showing the clicked values
+coord = []
+def onclick (event):
+    global coord
+    coord.append((event.xdata, event.ydata))
+    x = event.xdata
+    y = event.ydata
+    vel = (y)/x
+
+    # printing the values of the selected point
+    print([x,y])
+    print([vel])
+    annot.xy = (x,y)
+    annot.vel = (vel)
+    text = "({:.5g}, {:.5g})".format(x,y)
+    text1 = "({:.5g})".format(vel)
+    annot.set_text(text)
+    annot.set_text(text1)
+    annot.set_visible(True)
+    fig.canvas.draw() #redraw the figure
+
+fig.canvas.mpl_connect('button_press_event',onclick)
+plt.show()
+
+#fig.savefig("Height.png")
+#plt.savefig("fig.pdf")
+# Unzipping the coord list in two different arrays
+x1, y1 = zip(*coord)
+print(x1, y1)
